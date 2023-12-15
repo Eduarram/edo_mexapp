@@ -1,0 +1,160 @@
+---
+title: "Dashbard del Estado de México variables importantes"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: scroll
+    theme:
+      version: 3
+      bootswatch: cyborg
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(plotly)
+library(sp)
+library(geojsonio)
+library(jsonlite)
+library(haven)
+library(sf)
+library(bslib)
+library(shiny)
+library(leaflet)
+library(tmap)
+library(leafdown)
+library(shinyjs)
+library(mapview)
+library(shinydashboard)
+library(ggExtra)
+library(thematic)
+library(DT)
+
+#####data and shape file
+datos_Edomex <- read.csv("data_edomex.csv")
+
+unscaled_data <- datos_Edomex
+
+datos_geojson <- st_read("gadm41_MEX_2.json")
+
+Edo_Mex <- datos_geojson %>% dplyr::select(NAME_1, geometry) %>% 
+  dplyr::filter(NAME_1=='México')
+
+Edo_Mex <- cbind(Edo_Mex, datos_Edomex[,2:9])
+
+f <- names(Edo_Mex)[!(names(Edo_Mex) %in% c("NAME_1","Municipality", "geometry", "X"))]
+
+
+data_Edomex <- Edo_Mex %>% dplyr::select(Municipality,f)
+
+datos_Edomex[,4:9] <- sapply(datos_Edomex[,4:9], log)
+
+g <- names(data_Edomex)[!(names(data_Edomex) %in% c( "Municipality", "geometry"))]
+
+```
+
+Mapa y datos 
+====================================================================================
+
+Row 
+------------------------------------------------------------------------------------
+
+### mapa del estado de Mexico variables economicas
+
+```{r}
+
+mapviewOptions(basemaps ="CartoDB.DarkMatter",
+               na.color="blue")
+
+mapview(Edo_Mex, zcol=f, height=600, width=900)
+```
+
+
+
+Row {.tabset data-width=400}
+------------------------------------------------------------------------------------
+
+### datos
+
+```{r}
+### scaled  variables 
+datatable(unscaled_data[,2:9])
+
+```
+
+### datos logaritmicos
+
+```{r}
+datatable(datos_Edomex)
+```
+
+
+sccterplot 
+====================================================================================
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+
+selectInput("VariableX", "X-axis Variable", choices = g , selected = 'education')
+selectInput("VariableY", "Y-axis Variable", choices = g, selected = 'GINI')
+    
+
+```
+
+
+Row 
+-----------------------------------------------------------------------
+
+### histograma de las variables 
+
+```{r}
+renderPlotly({
+  g1 <- ggplot(datos_Edomex, aes_string(x=input$VariableX)) + 
+      geom_histogram(color="#000000", fill="green") + 
+      geom_density(color = "#000000", fill = "blue", alpha = 0.6) +
+      theme(panel.background = element_rect(fill = "gray20"),
+            panel.grid.major = element_line(colour = "black"))
+    
+    ggplotly(g1)
+})
+
+
+```
+
+
+Row 
+-----------------------------------------------------------------------
+
+### densidad y correlacion 2D de los datos 
+
+```{r}
+renderPlotly({
+  gg <- ggplot(data = datos_Edomex, aes_string(x = input$VariableX, 
+                                                 y = input$VariableY)) +
+      geom_point(color = "blue", size=1.6, shape=10) + 
+      geom_density_2d(color="green") + 
+      theme(panel.background = element_rect(fill = "gray20"),
+            panel.grid.major = element_line(colour = "black"))
+    
+    
+    
+    ggplotly(gg)
+})
+```
+
+
+Row 
+------------------------------------------------------------------------------------
+
+```{r}
+
+```
+
+
+
+
+
+
