@@ -88,7 +88,7 @@ tmap_arrange(ma1, ma2, ma3, ma
 
 
 
-Edo_mex <- load("C:/Users/eduar/OneDrive/Desktop/proyecto salud/healt proyect/data/edo_mex.RData")
+
 
 f <- names(Edo_Mex)[!(names(Edo_Mex) %in% c("NAME_1", "NAME_2", "geometry"))]
 
@@ -127,3 +127,12 @@ server <- function(input, output){
 }
 
 shinyApp(ui=fluidPage(sidebar, body), server)
+
+
+
+############################################# map with mapview
+
+mapviewOptions(basemaps ="CartoDB.DarkMatter",
+               na.color="blue")
+
+mapview(Edo_Mex, zcol=f, height=600, width=900)

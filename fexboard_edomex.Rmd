@@ -1,5 +1,5 @@
 ---
-title: "Dashbard del Estado de México variables importantes"
+title: "shiny app Edo Mex"
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
@@ -54,59 +54,23 @@ g <- names(data_Edomex)[!(names(data_Edomex) %in% c( "Municipality", "geometry")
 
 ```
 
-Mapa y datos 
-====================================================================================
-
-Row 
-------------------------------------------------------------------------------------
-
-### mapa del estado de Mexico variables economicas
-
-```{r}
-
-mapviewOptions(basemaps ="CartoDB.DarkMatter",
-               na.color="blue")
-
-mapview(Edo_Mex, zcol=f, height=600, width=900)
-```
-
-
-
-Row {.tabset data-width=400}
-------------------------------------------------------------------------------------
-
-### datos
-
-```{r}
-### scaled  variables 
-datatable(unscaled_data[,2:9])
-
-```
-
-### datos logaritmicos
-
-```{r}
-datatable(datos_Edomex)
-```
-
-
-sccterplot 
+correlación y mapa.
 ====================================================================================
 
 Column {.sidebar}
------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 
 ```{r}
 
-selectInput("VariableX", "X-axis Variable", choices = g , selected = 'education')
-selectInput("VariableY", "Y-axis Variable", choices = g, selected = 'GINI')
+selectInput("VariableX", "X-axis e histogram", choices = g , selected = 'education')
+selectInput("VariableY", "Y-axis y mapa", choices = g, selected = 'GINI')
     
 
 ```
 
 
 Row 
------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 
 ### histograma de las variables 
 
@@ -126,7 +90,7 @@ renderPlotly({
 
 
 Row 
------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 
 ### densidad y correlacion 2D de los datos 
 
@@ -149,12 +113,45 @@ renderPlotly({
 Row 
 ------------------------------------------------------------------------------------
 
+
 ```{r}
+renderPlotly({
+  g1 <- ggplot() +
+  geom_sf(data = data_Edomex, aes_string(fill = input$VariableY), color = "black") +
+  scale_fill_gradient(low = "#00FF66", high = "#004776") + 
+    theme(panel.background = element_rect(fill = "gray20"),
+          panel.grid.major = element_line(colour = "black")) 
+  
+  ggplotly(g1) 
+})
+
+
+
 
 ```
 
 
 
+tablas 
+====================================================================================
+
+
+Row {.tabset data-width=400}
+------------------------------------------------------------------------------------
+
+### datos
+
+```{r}
+### scaled  variables 
+datatable(unscaled_data[,2:9])
+
+```
+
+### datos logaritmicos
+
+```{r}
+datatable(datos_Edomex)
+```
 
 
 
